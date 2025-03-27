@@ -8,6 +8,7 @@ from config import *
 from dialogue import DialogueManager
 from combat import CombatManager
 from map_converter import convert_map_image
+import time
 
 def wrap_text(text, font, max_width):
     words = text.split()
@@ -29,6 +30,7 @@ class Game:
     def __init__(self):
         pygame.init()
         self.screen = pygame.display.set_mode((WIN_WIDTH, WIN_HEIGHT))
+#                                               flags=pygame.FULLSCREEN)
         self.clock = pygame.time.Clock()
         self.running = True
         
@@ -37,6 +39,7 @@ class Game:
         self.pnj_name_font = pygame.font.Font("assets/fonts/HomeVideo-BLG6G.ttf", 24)
         
         self.intro_background = pygame.image.load("assets/sprites/introbackground.png")
+        self.tutoriel_background = pygame.image.load("assets/sprites/tutoriel.png")
 
         # Création du gestionnaire de dialogue avec les données de config
         from config import DIALOGUES, PNJ_NAMES
@@ -198,9 +201,27 @@ class Game:
             self.screen.blit(play_button.image, play_button.rect)
             self.clock.tick(FPS)
             pygame.display.update()
+        
+    def tutoriel(self):
+        tuto = True
+        
+        while tuto:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    tuto = False
+                    self.running = False
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_SPACE:
+                        tuto = False
+            self.screen.blit(self.tutoriel_background, (0, 0))
+            self.clock.tick(FPS)
+            pygame.display.update()
+            
+        
 
 g = Game()
 g.intro_screen()
+g.tutoriel()
 g.new()
 while g.running:
     g.main()

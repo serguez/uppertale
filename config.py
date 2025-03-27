@@ -43,10 +43,9 @@ DIALOGUES = {
         "Byeeee ^^"
     ],
     "pnj_2": [
-        "J'accorde plus trop ma confiance...",
-        "Un sourire, t'sais pas c'que ca cache...",
-        "On vient prendre la température,",
-        "2-3 snaps et on s'arrache..."
+        "Bonjo█r",
+        "Etrange n'█st-ce pa█ ?",
+        "J█ ne sa█s pa███e qui m'arr██e..."
     ],
     "pnj_3":[
         "... ",
@@ -54,13 +53,28 @@ DIALOGUES = {
         "Je ne sais pas ce que tu as fait au petit gus d'avant...",
         "Il n'est pas vraiment méchant... Il veut juste jouer",
         "Fais correctement tes choix la prochaine fois..",
-        "Enfin, réfléchis-y..."]
+        "Enfin, réfléchis-y..."
+    ],
+    "pnj_4":[
+        "Je peux savoir ce que tu cherches ?",
+        "Je te vois là...",
+        "Je sais que tu me suis.",
+        "Ah... Non ? Bon peut-être alors",
+        "C'est vrai que ce village est petit"
+        ],
+    "pnj_5":[
+        "...",
+        "Encore ?",
+        "Qu'est-ce qui cloche avec toi ?"
+        ]
 }
 
 PNJ_NAMES = {
     "pnj_1": "Geek Nostalgique :3",
-    "pnj_2": "Luther",
-    "pnj_3": "Hevletica"
+    "pnj_2": "██████",
+    "pnj_3": "Hevletica",
+    "pnj_4": "Hevletica",
+    "pnj_5": "Helvetica"
 }
 
 # ----------EXEMPLE DE MOB----------
