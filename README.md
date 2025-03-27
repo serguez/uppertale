@@ -1,7 +1,7 @@
 # uppertale
 Fan Game of Undertale
 
-Création de map : 
+# Création de map : 
 (0,0,255): mur
 (0, 255, x): porte vers la map prochaine (renseignée dans config.py)
 (255, 0, 0): joueur
