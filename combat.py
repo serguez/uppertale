@@ -1,8 +1,6 @@
 import pygame, sys, random, math
 from config import *
 
-mess_duration = 3500
-
 pygame.font.init()
 font = pygame.font.SysFont("Arial", 24)
 small_font = pygame.font.SysFont("Arial", 18)
@@ -43,7 +41,6 @@ class Button:
 # --- Classe Monster ---
 class Monster:
     def __init__(self, data):
-        # On attend un dictionnaire avec les clés "name", "hp", "atq", "interaction_options", etc.
         self.name = data.get("name", "Inconnu")
         self.max_hp = data.get("hp", 50)
         self.hp = self.max_hp
@@ -155,13 +152,18 @@ class CombatManager:
         self.screen = screen
         self.monster = monster
         self.player_hp = 20
-        self.state = "menu"   # États : "menu", "combat", "interaction", "pity", "enemy_turn", "end"
+        self.state = "menu"   # États : "menu", "combat", "interaction", "pity", "wait", "enemy_turn", "end"
         self.outcome = None   # "victoire", "défaite", "fuite", "épargné"
         self.message = ""
-        self.message_timer = 0
-        self.message_start_time = 0  # Initialisation ajoutée
-        
+        self.combat_finished = False
+        self.wait_start_time = None  # Pour le délai en état "wait"
         self.init_menu()
+    
+    # Pour définir un message et passer en état "wait"
+    def set_message_and_wait(self, message):
+        self.message = message
+        self.wait_start_time = pygame.time.get_ticks()
+        self.state = "wait"
     
     # Initialisation du menu principal
     def init_menu(self):
@@ -244,16 +246,23 @@ class CombatManager:
             self.update_interaction(events)
         elif self.state == "pity":
             self.update_pity(events)
+        elif self.state == "wait":
+            # En état "wait", on attend 2 secondes
+            if pygame.time.get_ticks() - self.wait_start_time >= 2000:
+                if self.outcome is None:
+                    self.start_enemy_turn()
+                    self.state = "enemy_turn"
+                else:
+                    self.state = "end"
         elif self.state == "enemy_turn":
             self.update_enemy_turn(events)
         elif self.state == "end":
             self.update_end(events)
         
-        # Mise à jour simplifiée du timer pour les messages
-        current_time = pygame.time.get_ticks()
-        if self.message and current_time - self.message_start_time >= self.message_timer:
-            self.message = ""
-        
+        if self.message:
+            msg_surface = small_font.render(self.message, True, YELLOW)
+            self.screen.blit(msg_surface, (WIN_WIDTH // 2 - msg_surface.get_width() // 2, WIN_HEIGHT - 40))
+    
         if self.monster.hp <= 0 and self.state != "end":
             self.outcome = "victoire"
             self.state = "end"
@@ -325,21 +334,14 @@ class CombatManager:
                     self.combat_damage = damage
                     self.monster.hp = max(self.monster.hp - damage, 0)
                     self.message = f"Vous infligez {damage} dégâts !"
-                    self.message_timer = 1000
-                    self.message_start_time = pygame.time.get_ticks()
                     self.combat_finished = True
-                    pygame.time.set_timer(pygame.USEREVENT + 1, 1000)
+                    self.wait_start_time = pygame.time.get_ticks()
+                    self.state = "wait"
         if elapsed >= self.combat_duration and not self.combat_finished:
             self.message = "Vous avez raté l'attaque !"
-            self.message_timer = 1000
-            self.message_start_time = pygame.time.get_ticks()
             self.combat_finished = True
-            pygame.time.set_timer(pygame.USEREVENT + 1, 1000)
-        for event in events:
-            if event.type == pygame.USEREVENT + 1:
-                pygame.time.set_timer(pygame.USEREVENT + 1, 0)
-                self.start_enemy_turn()
-                self.state = "enemy_turn"
+            self.wait_start_time = pygame.time.get_ticks()
+            self.state = "wait"
     
     def draw_combat(self):
         draw_gradient_rect(self.screen, self.combat_rect)
@@ -359,20 +361,16 @@ class CombatManager:
                 pos = pygame.mouse.get_pos()
                 for i, btn in enumerate(self.interaction_buttons):
                     if btn.is_clicked(pos):
-                        # Si l'option sélectionnée est "S'informer", on affiche les infos du monstre.
                         if btn.text == self.monster.interaction_options[0]:
                             self.message = f"{self.monster.name} : {self.monster.hp}PV & {self.monster.atq}ATQ. {self.monster.description}"
                         else:
-                            # Sinon, on vérifie si l'index du bouton cliqué correspond à l'option correcte.
                             if i == self.monster.correct_option_index:
                                 self.message = f"{self.monster.name} se sent réconforté."
                                 self.monster.correct_interaction_done = True
                             else:
                                 self.message = "Ça ne lui a rien fait."
-                        self.message_timer = mess_duration
-                        self.message_start_time = pygame.time.get_ticks()
-                        self.start_enemy_turn()
-                        self.state = "enemy_turn"
+                        self.wait_start_time = pygame.time.get_ticks()
+                        self.state = "wait"
     
     def start_pity(self):
         self.state = "pity"
@@ -386,32 +384,25 @@ class CombatManager:
                     if btn.is_clicked(pos):
                         if btn.text == "Fuir":
                             flee_factor = random.random()
-                            print(flee_factor)
                             if flee_factor < 0.5:
                                 self.message = "Vous avez réussi à fuir !"
-                                self.message_timer = mess_duration
-                                self.message_start_time = pygame.time.get_ticks()
+                                self.wait_start_time = pygame.time.get_ticks()
                                 self.outcome = "fuite"
-                                self.state = "end"
+                                self.state = "wait"
                             else:
                                 self.message = "Fuite ratée."
-                                self.message_timer = mess_duration
-                                self.message_start_time = pygame.time.get_ticks()
-                                self.start_enemy_turn()
-                                self.state = "enemy_turn"
+                                self.wait_start_time = pygame.time.get_ticks()
+                                self.state = "wait"
                         elif btn.text == "Épargner":
                             if self.monster.correct_interaction_done:
                                 self.message = "Vous avez épargné le monstre."
-                                self.message_timer = mess_duration
-                                self.message_start_time = pygame.time.get_ticks()
+                                self.wait_start_time = pygame.time.get_ticks()
                                 self.outcome = "épargné"
-                                self.state = "end"
+                                self.state = "wait"
                             else:
                                 self.message = "Vous ne pouvez pas épargner le monstre !"
-                                self.message_timer = mess_duration
-                                self.message_start_time = pygame.time.get_ticks()
-                                self.start_enemy_turn()
-                                self.state = "enemy_turn"
+                                self.wait_start_time = pygame.time.get_ticks()
+                                self.state = "wait"
     
     def start_enemy_turn(self):
         self.enemy_turn_start = pygame.time.get_ticks()
@@ -481,8 +472,7 @@ class CombatManager:
             if self.player_rect.colliderect(proj.rect):
                 self.player_hp = max(self.player_hp - self.monster.atq, 0)
                 self.message = f"Vous subissez {self.monster.atq} dégâts !"
-                self.message_timer = 1000
-                self.message_start_time = pygame.time.get_ticks()
+                pygame.display.flip()
                 active = False
             if active:
                 active_projectiles.append(proj)
@@ -524,16 +514,13 @@ class CombatManager:
         clock = pygame.time.Clock()
         while True:
             events = pygame.event.get()
-            # Vérification de l'événement QUIT et fermeture immédiate
             for event in events:
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
             if self.state == "end":
-                # Affichez l'écran final pour que le message reste visible
                 self.draw()
                 pygame.display.flip()
-                # Boucle interne : on attend un événement clavier ou QUIT
                 waiting = True
                 while waiting:
                     event = pygame.event.wait()
@@ -543,7 +530,7 @@ class CombatManager:
                     elif event.type == pygame.KEYDOWN:
                         waiting = False
                         self.state = "exit"
-                break  # Quitte la boucle principale après la fin
+                break
             else:
                 self.update(events)
                 self.draw()
@@ -565,7 +552,6 @@ def start_combat(ennemy, screen):
 
     if outcome == "victoire":
         ennemy.kill()
-
     elif outcome == "défaite":
         print("PERDU")
         pygame.quit()
