@@ -50,6 +50,7 @@ class Monster:
         self.correct_interaction_done = False
         self.description = data.get("description", "Inconnu")
         self.attacks = data.get("attacks", {})
+        self.consequence = data.get("conséquence")
 
 # --- Classe Projectile ---
 class Projectile:

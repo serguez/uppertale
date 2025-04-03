@@ -92,7 +92,7 @@ ENEMY_DATA = {
             "prj": 5,
             "trj": "linear",
             "reb": True,
-            "conséquence": ""
+            "conséquence": "loadmap1_o1"
         }
     },
 }
