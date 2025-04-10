@@ -90,7 +90,7 @@ ENEMY_DATA = {
             "agr": "small",
             "vit": 6,
             "prj": 5,
-            "trj": "linear",
+            "trj": "round6",
             "reb": True,
             "conséquence": "loadmap1_o1"
         }

@@ -9,3 +9,4 @@ Fan Game of Undertale
 (255, 255, x): pnj (id = x + 1)
 # Truc à faire :
 Graphisme, Musique, ergonomie utilisateur (cooldown, tuto, etc)
+Combat : appuyer sur 1 2 ou 3
