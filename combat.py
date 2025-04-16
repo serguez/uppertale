@@ -50,7 +50,8 @@ class Monster:
         self.correct_interaction_done = False
         self.description = data.get("description", "Inconnu")
         self.attacks = data.get("attacks", {})
-        self.consequence = data.get("conséquence")
+        self.consequence = self.attacks.get("conséquence")
+        print(f"[DEBUG] Monster.consequence = {self.consequence!r}")
 
 # --- Classe Projectile ---
 class Projectile:
@@ -149,7 +150,8 @@ class Projectile:
 
 # --- Classe CombatManager ---
 class CombatManager:
-    def __init__(self, screen, monster):
+    def __init__(self, game, screen, monster):
+        self.game = game
         self.screen = screen
         self.monster = monster
         self.player_hp = 20
@@ -267,6 +269,8 @@ class CombatManager:
         if self.monster.hp <= 0 and self.state != "end":
             self.outcome = "victoire"
             self.state = "end"
+            if self.monster.consequence:
+                self._process_consequence(self.monster.consequence)
         if self.player_hp <= 0 and self.state != "end":
             self.outcome = "défaite"
             self.state = "end"
@@ -390,6 +394,8 @@ class CombatManager:
                                 self.wait_start_time = pygame.time.get_ticks()
                                 self.outcome = "fuite"
                                 self.state = "wait"
+                                if self.monster.consequence:
+                                    self._process_consequence(self.monster.consequence)
                             else:
                                 self.message = "Fuite ratée."
                                 self.wait_start_time = pygame.time.get_ticks()
@@ -400,6 +406,8 @@ class CombatManager:
                                 self.wait_start_time = pygame.time.get_ticks()
                                 self.outcome = "épargné"
                                 self.state = "wait"
+                                if self.monster.consequence:
+                                    self._process_consequence(self.monster.consequence)
                             else:
                                 self.message = "Vous ne pouvez pas épargner le monstre !"
                                 self.wait_start_time = pygame.time.get_ticks()
@@ -538,17 +546,31 @@ class CombatManager:
                 pygame.display.flip()
                 clock.tick(FPS)
         return self.outcome
+    
+    def _process_consequence(self, consequence_str: str):
+        """
+        Si la chaîne commence par 'load', on fait game.load_new_map(...)
+        Si elle commence par 'play', on fait game.play_cinematique(...)
+        """
+        if consequence_str.startswith("load"):
+            # tout ce qu'il y a après "load"
+            map_key = consequence_str[len("load"):]
+            self.game.load_new_map(map_key)
 
-def start_combat(ennemy, screen):
-    overlay = pygame.Surface(screen.get_size())
-    overlay.fill((0,0,0))
-    screen.blit(overlay, (0,0))
+        else:
+            # debug, cas non prévu
+            print(f"[Consequence] action inconnue : {consequence_str!r}")
+
+
+def start_combat(ennemy, game):
+    overlay = pygame.Surface(game.screen.get_size())
+    game.screen.blit(overlay, (0,0))
     pygame.display.flip()
 
     from config import ENEMY_DATA
     enemy_data = ENEMY_DATA.get(int(ennemy.ennemy_id))
     monster = Monster(enemy_data)
-    combat_manager = CombatManager(screen, monster)
+    combat_manager = CombatManager(game, game.screen, monster)
     outcome = combat_manager.run()
 
     if outcome == "victoire":

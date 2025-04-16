@@ -155,7 +155,7 @@ class Game:
                 print(enemy_id)
                 # Récupère les données de l'ennemi depuis config.py
                 from combat import start_combat
-                outcome = start_combat(nearest_entity, self.screen)
+                outcome = start_combat(nearest_entity, self)
 
     def update(self):
         self.all_sprites.update()
