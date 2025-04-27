@@ -19,6 +19,9 @@ def convert_map_image(image_path):
     for y in range(height):
         for x in range(width):
             color = img.get_at((x, y))
+            px, py = 5, 2
+            if (x, y) == (px, py):
+                print("levier : ", color.r, color.g, color.b)
             if (color.r, color.g, color.b) == (0, 0, 255):
                 map_data[y][x] = "BB"
             elif color.r == 0 and color.g == 255:
@@ -34,5 +37,10 @@ def convert_map_image(image_path):
             elif color.r == 255 and color.g == 255:
                 pnj_number = color.b + 1
                 map_data[y][x] = f"Q{pnj_number}"
-            # Sinon, la case reste vide ("")
+            elif (color.r, color.g, color.b) == (0, 250, 250):      # cyan
+                map_data[y][x] = "LV1"
+                print("Levier au coo :", x, y)                               # ou LV{color.a}
+            elif (color.r, color.g, color.b) == (0, 200, 0):         # vert clair
+                map_data[y][x] = "DR1"
+                        # Sinon, la case reste vide ("")
     return map_data

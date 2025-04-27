@@ -2,6 +2,7 @@
 
 import pygame
 from config import *
+from event_manager import Event
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, game, x, y):
@@ -93,10 +94,12 @@ class Player(pygame.sprite.Sprite):
 
     def collide_exit_block(self):
         hits_exit = pygame.sprite.spritecollide(self, self.game.exit_blocks, False)
-        if hits_exit:
-            transition_block = hits_exit[0]
-            target_map_key = transition_block.target_map
-            self.game.load_new_map(target_map_key)
+        for block in hits_exit:
+            # Si c'est une Door verrouillée, on ignore
+            if hasattr(block, "locked") and block.locked:
+                continue
+            self.game.load_new_map(block.target_map)
+            break   
 
 class Pnj(pygame.sprite.Sprite):
     def __init__(self, game, x, y, pnj_id):
@@ -181,6 +184,48 @@ class Transition_Block(pygame.sprite.Sprite):
         self.rect.y = self.y
 
         self.target_map = target_map
+
+class Trigger(pygame.sprite.Sprite):
+    """Zone invisible ou levier ; déclenche un event quand le joueur appuie sur E dessus."""
+    def __init__(self, game, x, y, kind, event_id):
+        super().__init__(game.all_sprites)
+        self.game, self.kind, self.event_id = game, kind, event_id
+        self.image = pygame.Surface((TILESIZE, TILESIZE), pygame.SRCALPHA)
+        self.rect  = self.image.get_rect(topleft=(x*TILESIZE, y*TILESIZE))
+
+    def activate(self):
+        self.game.event_mgr.post(Event(self.kind, {"id": self.event_id}))
+
+class Lever(Trigger):
+    def __init__(self, game, x, y, lever_id):
+        super().__init__(game, x, y, "LEVER_PULLED", lever_id)
+        self.on_img  = pygame.Surface((TILESIZE, TILESIZE)); self.on_img.fill((180,90,0))
+        self.off_img = pygame.Surface((TILESIZE, TILESIZE)); self.off_img.fill((100,50,0))
+        self.image   = self.off_img
+        self.pulled  = False
+
+    def activate(self):
+        if not self.pulled:
+            self.pulled = True
+            self.image  = self.on_img
+            super().activate()
+
+class Door(Transition_Block):
+    def __init__(self, game, x, y, target_map, unlock_id):
+        super().__init__(game, x, y, target_map)
+        self.locked = True
+        self.image.fill((150,150,150))           # gris = fermé
+        game.event_mgr.subscribe("LEVER_PULLED", self.on_event)
+        self.unlock_id = unlock_id
+
+    def on_event(self, event):
+        if event.payload["id"] == self.unlock_id:
+            self.locked = False
+            self.image.fill(GREEN)               # vert = ouvert
+
+    # on override la collision pour ignorer si verrouillée
+    def collide_player(self, player_rect):
+        return (not self.locked) and self.rect.colliderect(player_rect)
 
 class Button:
     def __init__(self, x, y, width, height, fg, bg, content, fontsize):

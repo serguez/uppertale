@@ -102,51 +102,63 @@ ENEMY_DATA = {
 
 MAPS_CONFIG = {
     "map1_1": {
-        "name": "map1_1",
-        "image": "assets/maps/map1_1.png",
+        "name": "hub",
+        "image": "assets/maps/hub.png",
         "previous_map": None,            # pas de map précédente pour la première map
-        "next_map": ["map1_2"]   # plusieurs chemins possibles
+        "next_map": ["map1_2", "map1_5", "map1_6"]   # plusieurs chemins possibles
     },
     "map1_2": {
-        "name": "map1_2",
-        "image": "assets/maps/map1_2.png",
+        "name": "lev_couloir",
+        "image": "assets/maps/lev_couloir.png",
         "previous_map": "map1_1",
-        "next_map": ["map1_3", "map1_o1"]  # fin de parcours ou autre suite
+        "next_map": ["map1_3"]  # fin de parcours ou autre suite
     },
     "map1_3": {
-        "name": "map1_3",
-        "image": "assets/maps/map1_3.png",
+        "name": "lev_main",
+        "image": "assets/maps/lev_main.png",
         "previous_map": "map1_2",
         "next_map": ["map1_4"]           # par exemple, un unique chemin vers la suite
     },
     "map1_4": {
-        "name": "map1_4",
-        "image": "assets/maps/map1_4.png",
+        "name": "lev_o1",
+        "image": "assets/maps/lev_o1.png",
         "previous_map": "map1_3",
-        "next_map": ["map1_5"]
+        "next_map": None
     },
     "map1_5": {
-        "name": "map1_5",
-        "image": "assets/maps/map1_5.png",
-        "previous_map": "map1_4",
-        "next_map": ["map1_f"]
+        "name": "barrer",
+        "image": "assets/maps/barrer.png",
+        "previous_map": "map1_1",
+        "next_map": None
     },
-    "map1_f": {
-        "name": "map1_f",
-        "image": "assets/maps/map1_f.png",
-        "previous_map": "map1_5",
-        "next_map": []
+    "map1_6": {
+        "name": "o1",
+        "image": "assets/maps/o1.png",
+        "previous_map": "map1_1",
+        "next_map": ["map1_7"]
     },
-    "map1_o1": {
-        "name": "map1_o1",
-        "image": "assets/maps/map1_o1.png",
-        "previous_map": "map1_2",
-        "next_map": ["map1_o2"]
+    "map1_7": {
+        "name": "o2",
+        "image": "assets/maps/o2.png",
+        "previous_map": "map1_6",
+        "next_map": ["map1_8"]
     },
-    "map1_o2": {
-        "name": "map1_o2",
-        "image": "assets/maps/map1_o2.png",
-        "previous_map": "map1_o1",
-        "next_map": []
+    "map1_8": {
+        "name": "o3",
+        "image": "assets/maps/o3.png",
+        "previous_map": "map1_7",
+        "next_map": ["o3"]
+    },
+    "map1_9": {
+        "name": "o3-1",
+        "image": "assets/maps/o3.png",
+        "previous_map": "map1_8",
+        "next_map": None
+    },
+    "map1_10": {
+        "name": "o3-2",
+        "image": "assets/maps/o3.png",
+        "previous_map": "map1_8",
+        "next_map": None
     },
 }

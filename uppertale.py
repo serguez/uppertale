@@ -7,6 +7,7 @@ from sprites import *
 from config import *
 from dialogue import DialogueManager
 from combat import CombatManager
+from event_manager import EventManager
 from map_converter import convert_map_image
 import time
 
@@ -29,6 +30,7 @@ def wrap_text(text, font, max_width):
 class Game:
     def __init__(self):
         pygame.init()
+        self.event_mgr = EventManager() 
         self.screen = pygame.display.set_mode((WIN_WIDTH, WIN_HEIGHT))
 #                                               flags=pygame.FULLSCREEN)
         self.clock = pygame.time.Clock()
@@ -85,6 +87,12 @@ class Game:
                 elif code.startswith("EN"):
                     ennemy_id = code[2:]
                     Ennemy(self, x, y, ennemy_id=ennemy_id)
+
+                elif code.startswith("LV"):
+                    print("levier au", x ,y )
+                    Lever(self, x, y, lever_id=code)          # même id pour porte/levier
+                elif code.startswith("DR"):                          
+                    Door(self, x, y, target_map="map1_2", unlock_id=code.replace("DR","LV"))
 
     def load_new_map(self, map_key):
         self.all_sprites.empty()
@@ -156,6 +164,14 @@ class Game:
                 # Récupère les données de l'ennemi depuis config.py
                 from combat import start_combat
                 outcome = start_combat(nearest_entity, self)
+        if nearest_entity is None:
+            for spr in self.all_sprites:
+                if isinstance(spr, Trigger):
+                    dist = math.hypot(spr.rect.centerx - player_sprite.rect.centerx,
+                                      spr.rect.centery - player_sprite.rect.centery)
+                    if dist < INTERACTION_RANGE:
+                        spr.activate()
+                        return
 
     def update(self):
         self.all_sprites.update()
