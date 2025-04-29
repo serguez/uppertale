@@ -103,7 +103,7 @@ ENEMY_DATA = {
 MAPS_CONFIG = {
     "map1_1": {
         "name": "hub",
-        "image": "assets/maps/hub.png",
+        "image": "assets/maps/spawn.png",
         "previous_map": None,            # pas de map précédente pour la première map
         "next_map": ["map1_2", "map1_5", "map1_6"]   # plusieurs chemins possibles
     },
@@ -147,7 +147,7 @@ MAPS_CONFIG = {
         "name": "o3",
         "image": "assets/maps/o3.png",
         "previous_map": "map1_7",
-        "next_map": ["o3"]
+        "next_map": ["map1_9", "map1_10"]
     },
     "map1_9": {
         "name": "o3-1",
