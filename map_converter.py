@@ -1,17 +1,6 @@
 import pygame
 
 def convert_map_image(image_path):
-    """
-    Convertit l'image en une map (liste de listes) en respectant :
-      - Bleu (0,0,255) : mur ("BB")
-      - Rouge (255,0,0) : joueur ("XX")
-      - Magenta (255,x,255) : ennemi ("ENx")
-      - Jaune (255,255,x) : PNJ ("Qx")
-      - Vert (0,255,x) : porte de transition :
-          * Si x == 99 : porte de retour ("BACK")
-          * Sinon : porte de sortie ("NEXT_{x}")
-      - Autres : case vide ("")
-    """
     img = pygame.image.load(image_path)
     width, height = img.get_size()
     map_data = [["" for _ in range(width)] for _ in range(height)]
@@ -37,10 +26,10 @@ def convert_map_image(image_path):
             elif color.r == 255 and color.g == 255:
                 pnj_number = color.b + 1
                 map_data[y][x] = f"Q{pnj_number}"
-            elif (color.r, color.g, color.b) == (0, 250, 250):      # cyan
-                map_data[y][x] = "LV1"
-                print("Levier au coo :", x, y)                               # ou LV{color.a}
-            elif (color.r, color.g, color.b) == (0, 200, 0):         # vert clair
-                map_data[y][x] = "DR1"
-                        # Sinon, la case reste vide ("")
+            elif color.r == 255 and color.g == 165:
+                lever_id = color.b
+                map_data[y][x] = f"LEVER_{lever_id}"
+            elif color.r == 139 and color.g == 69:
+                door_id = color.b
+                map_data[y][x] = f"DOOR_{door_id}"
     return map_data

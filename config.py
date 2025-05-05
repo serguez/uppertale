@@ -129,7 +129,7 @@ MAPS_CONFIG = {
         "name": "barrer",
         "image": "assets/maps/barrer.png",
         "previous_map": "map1_1",
-        "next_map": None
+        "next_map": ["map1_1"]
     },
     "map1_6": {
         "name": "o1",
@@ -151,23 +151,14 @@ MAPS_CONFIG = {
     },
     "map1_9": {
         "name": "o3-1",
-        "image": "assets/maps/o3.png",
+        "image": "assets/maps/o3-1.png",
         "previous_map": "map1_8",
         "next_map": None
     },
     "map1_10": {
         "name": "o3-2",
-        "image": "assets/maps/o3.png",
+        "image": "assets/maps/o3-2.png",
         "previous_map": "map1_8",
         "next_map": None
     },
-}
-
-TRIGGERS = {
-    "LV": {"class_name": "Lever", "args": ["lever_id"]},
-    # plus tard → plate-forme, bouton, etc.
-}
-REACTIONS = {
-    "DR": {"class_name": "Door", "args": ["target_map", "unlock_id"]},
-    # plus tard → trappe, pont levable, etc.
 }
