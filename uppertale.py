@@ -10,6 +10,8 @@ from combat import CombatManager
 from event_manager import EventManager
 from map_converter import convert_map_image
 import time
+import sprites
+
 
 def wrap_text(text, font, max_width):
     words = text.split()
@@ -48,8 +50,12 @@ class Game:
         self.dialogue_manager = DialogueManager(self, DIALOGUES, PNJ_NAMES, self.dialogue_font, self.pnj_name_font)
 
         self.maps_config = MAPS_CONFIG
+
+        self.event_mgr = EventManager()
+        self.lever_states = {}
         
     def createTileMap(self, map_data):
+        
         player_coordonne = [0, 0]
         offset = [10, 7.5]
 
@@ -88,13 +94,27 @@ class Game:
                     ennemy_id = code[2:]
                     Ennemy(self, x, y, ennemy_id=ennemy_id)
 
-                elif code.startswith("LV"):
-                    print("levier au", x ,y )
-                    Lever(self, x, y, lever_id=code)          # même id pour porte/levier
-                elif code.startswith("DR"):                          
-                    Door(self, x, y, target_map="map1_2", unlock_id=code.replace("DR","LV"))
+                prefix = code[:2]
 
+                if prefix in TRIGGERS:
+                    cfg = TRIGGERS[prefix]
+                    cls = getattr(sprites, cfg["class_name"])
+                    # construis les kwargs à partir de cfg["args"] et de code
+                    kwargs = { cfg["args"][0]: code }
+                    cls(self, x, y, **kwargs)
+
+                elif prefix in REACTIONS:
+                    cfg = REACTIONS[prefix]
+                    cls = getattr(sprites, cfg["class_name"])
+                    # par exemple :
+                    kwargs = {
+                        cfg["args"][0]: self.current_map_config["next_map"][0],
+                        cfg["args"][1]: code.replace("DR", "LV")
+                    }
+                    cls(self, x, y, **kwargs)
+        
     def load_new_map(self, map_key):
+        print(f"[DEBUG] current_map_config for {map_name} → {self.current_map_config!r}")
         self.all_sprites.empty()
         self.blocks.empty()
         self.exit_blocks.empty()
@@ -117,6 +137,8 @@ class Game:
         self.current_map_config = self.maps_config["map1_1"]
         self.current_map = convert_map_image(self.current_map_config["image"])
         self.createTileMap(self.current_map)
+
+        self.lever_states.clear()
     
     def events(self):
         for event in pygame.event.get():

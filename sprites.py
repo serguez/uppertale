@@ -208,6 +208,7 @@ class Lever(Trigger):
         if not self.pulled:
             self.pulled = True
             self.image  = self.on_img
+            self.game.lever_states[self.event_id] = True
             super().activate()
 
 class Door(Transition_Block):
@@ -217,6 +218,9 @@ class Door(Transition_Block):
         self.image.fill((150,150,150))           # gris = fermé
         game.event_mgr.subscribe("LEVER_PULLED", self.on_event)
         self.unlock_id = unlock_id
+        if game.lever_states.get(self.unlock_id, False):
+            self.locked = False
+            self.image.fill(GREEN)
 
     def on_event(self, event):
         if event.payload["id"] == self.unlock_id:

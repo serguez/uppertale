@@ -162,3 +162,12 @@ MAPS_CONFIG = {
         "next_map": None
     },
 }
+
+TRIGGERS = {
+    "LV": {"class_name": "Lever", "args": ["lever_id"]},
+    # plus tard → plate-forme, bouton, etc.
+}
+REACTIONS = {
+    "DR": {"class_name": "Door", "args": ["target_map", "unlock_id"]},
+    # plus tard → trappe, pont levable, etc.
+}
