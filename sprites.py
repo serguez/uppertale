@@ -95,9 +95,6 @@ class Player(pygame.sprite.Sprite):
     def collide_exit_block(self):
         hits_exit = pygame.sprite.spritecollide(self, self.game.exit_blocks, False)
         for block in hits_exit:
-            # Si c'est une Door verrouillée, on ignore
-            if hasattr(block, "locked") and block.locked:
-                continue
             self.game.load_new_map(block.target_map)
             break   
 
@@ -185,51 +182,63 @@ class Transition_Block(pygame.sprite.Sprite):
 
         self.target_map = target_map
 
-class Trigger(pygame.sprite.Sprite):
-    """Zone invisible ou levier ; déclenche un event quand le joueur appuie sur E dessus."""
-    def __init__(self, game, x, y, kind, event_id):
-        super().__init__(game.all_sprites)
-        self.game, self.kind, self.event_id = game, kind, event_id
-        self.image = pygame.Surface((TILESIZE, TILESIZE), pygame.SRCALPHA)
-        self.rect  = self.image.get_rect(topleft=(x*TILESIZE, y*TILESIZE))
+class Lever(pygame.sprite.Sprite):
+    COLOR_IDLE   = (255, 165,   0)  # orange clair
+    COLOR_PULLED = (200, 130,   0)  # orange foncé
 
-    def activate(self):
-        self.game.event_mgr.post(Event(self.kind, {"id": self.event_id}))
-
-class Lever(Trigger):
     def __init__(self, game, x, y, lever_id):
-        super().__init__(game, x, y, "LEVER_PULLED", lever_id)
-        self.on_img  = pygame.Surface((TILESIZE, TILESIZE)); self.on_img.fill((180,90,0))
-        self.off_img = pygame.Surface((TILESIZE, TILESIZE)); self.off_img.fill((100,50,0))
-        self.image   = self.off_img
-        self.pulled  = False
+        super().__init__(game.all_sprites, game.levers)
+        self.game, self.id = game, lever_id
+        # État initial (True si déjà tiré dans lever_states)
+        self.pulled = game.lever_states.get(self.id, False)
 
-    def activate(self):
+        # Création d'une surface carrée de la taille d'une tuile
+        self.image = pygame.Surface((TILESIZE, TILESIZE))
+        # Couleur selon l'état
+        self.image.fill(self.COLOR_PULLED if self.pulled else self.COLOR_IDLE)
+
+        # Positionnement dans le monde
+        self.rect = self.image.get_rect(topleft=(x * TILESIZE, y * TILESIZE))
+
+    def pull(self):
+        """Appelé quand le joueur actionne le levier."""
         if not self.pulled:
             self.pulled = True
-            self.image  = self.on_img
-            self.game.lever_states[self.event_id] = True
-            super().activate()
+            # Mémoriser l'état pour persistance
+            self.game.lever_states[self.id] = True
+            # Émettre l'événement global
+            self.game.event_mgr.post(Event("LEVER_PULLED", {"lever_id": self.id}))
+            # Passer en couleur orange foncé
+            self.image.fill(self.COLOR_PULLED)
 
-class Door(Transition_Block):
-    def __init__(self, game, x, y, target_map, unlock_id):
-        super().__init__(game, x, y, target_map)
-        self.locked = True
-        self.image.fill((150,150,150))           # gris = fermé
-        game.event_mgr.subscribe("LEVER_PULLED", self.on_event)
-        self.unlock_id = unlock_id
-        if game.lever_states.get(self.unlock_id, False):
-            self.locked = False
-            self.image.fill(GREEN)
 
-    def on_event(self, event):
-        if event.payload["id"] == self.unlock_id:
-            self.locked = False
-            self.image.fill(GREEN)               # vert = ouvert
+class Door(pygame.sprite.Sprite):
+    COLOR_CLOSED = (100,  50, 25)  # brun foncé
+    COLOR_OPENED = (180, 100, 50)  # brun clair
 
-    # on override la collision pour ignorer si verrouillée
-    def collide_player(self, player_rect):
-        return (not self.locked) and self.rect.colliderect(player_rect)
+    def __init__(self, game, x, y, door_id):
+        super().__init__(game.all_sprites, game.blocks)
+        self.game, self.id = game, door_id
+
+        # Surface carrée de taille TILESIZE
+        self.image = pygame.Surface((TILESIZE, TILESIZE))
+        self.image.fill(self.COLOR_CLOSED)
+        self.rect = self.image.get_rect(topleft=(x * TILESIZE, y * TILESIZE))
+
+        # S’abonner à l’événement levier
+        game.event_mgr.subscribe("LEVER_PULLED", self.on_lever_pulled)
+        # Si déjà tiré, on ouvre tout de suite
+        if game.lever_states.get(self.id):
+            self.open()
+
+    def on_lever_pulled(self, event):
+        if event.payload.get("lever_id") == self.id:
+            self.open()
+
+    def open(self):
+        # Change la couleur en brun clair et désactive la collision
+        self.image.fill(self.COLOR_OPENED)
+        self.game.blocks.remove(self)
 
 class Button:
     def __init__(self, x, y, width, height, fg, bg, content, fontsize):

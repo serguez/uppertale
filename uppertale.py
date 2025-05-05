@@ -10,8 +10,7 @@ from combat import CombatManager
 from event_manager import EventManager
 from map_converter import convert_map_image
 import time
-import sprites
-
+from pygame.math import Vector2
 
 def wrap_text(text, font, max_width):
     words = text.split()
@@ -51,11 +50,10 @@ class Game:
 
         self.maps_config = MAPS_CONFIG
 
-        self.event_mgr = EventManager()
         self.lever_states = {}
+        self.levers = pygame.sprite.Group()
         
     def createTileMap(self, map_data):
-        
         player_coordonne = [0, 0]
         offset = [10, 7.5]
 
@@ -93,28 +91,15 @@ class Game:
                 elif code.startswith("EN"):
                     ennemy_id = code[2:]
                     Ennemy(self, x, y, ennemy_id=ennemy_id)
+                    
+                elif code.startswith("LEVER_"):
+                    lever_id = int(code.split("_")[1])
+                    Lever(self, x, y, lever_id)
+                elif code.startswith("DOOR_"):
+                    door_id = int(code.split("_")[1])
+                    Door(self, x, y, door_id)
 
-                prefix = code[:2]
-
-                if prefix in TRIGGERS:
-                    cfg = TRIGGERS[prefix]
-                    cls = getattr(sprites, cfg["class_name"])
-                    # construis les kwargs à partir de cfg["args"] et de code
-                    kwargs = { cfg["args"][0]: code }
-                    cls(self, x, y, **kwargs)
-
-                elif prefix in REACTIONS:
-                    cfg = REACTIONS[prefix]
-                    cls = getattr(sprites, cfg["class_name"])
-                    # par exemple :
-                    kwargs = {
-                        cfg["args"][0]: self.current_map_config["next_map"][0],
-                        cfg["args"][1]: code.replace("DR", "LV")
-                    }
-                    cls(self, x, y, **kwargs)
-        
     def load_new_map(self, map_key):
-        print(f"[DEBUG] current_map_config for {map_name} → {self.current_map_config!r}")
         self.all_sprites.empty()
         self.blocks.empty()
         self.exit_blocks.empty()
@@ -137,8 +122,6 @@ class Game:
         self.current_map_config = self.maps_config["map1_1"]
         self.current_map = convert_map_image(self.current_map_config["image"])
         self.createTileMap(self.current_map)
-
-        self.lever_states.clear()
     
     def events(self):
         for event in pygame.event.get():
@@ -149,12 +132,25 @@ class Game:
             if event.type == pygame.KEYDOWN:
                 # Touche d'interaction pour lancer le dialogue
                 if event.key == pygame.K_e:
-                    self.try_talk_to_entities()
+                    self.try_interact()
                 # Avancer le dialogue avec SPACE s'il est ouvert
                 if event.key == pygame.K_SPACE and self.dialogue_manager.dialogue_open:
                     self.dialogue_manager.advance_dialogue()
 
-    def try_talk_to_entities(self):
+    def try_interact(self):
+        player = next((s for s in self.all_sprites if isinstance(s, Player)), None)
+        if not player:
+            return
+
+        INTER_RANGE = 50
+        for lever in self.levers:
+            # transforme les tuples en vecteurs
+            player_pos = Vector2(player.rect.center)
+            lever_pos  = Vector2(lever.rect.center)
+            if player_pos.distance_to(lever_pos) < INTER_RANGE:
+                lever.pull()
+                return
+
         player_sprite = None
         for spr in self.all_sprites:
             if isinstance(spr, Player):
@@ -186,14 +182,6 @@ class Game:
                 # Récupère les données de l'ennemi depuis config.py
                 from combat import start_combat
                 outcome = start_combat(nearest_entity, self)
-        if nearest_entity is None:
-            for spr in self.all_sprites:
-                if isinstance(spr, Trigger):
-                    dist = math.hypot(spr.rect.centerx - player_sprite.rect.centerx,
-                                      spr.rect.centery - player_sprite.rect.centery)
-                    if dist < INTERACTION_RANGE:
-                        spr.activate()
-                        return
 
     def update(self):
         self.all_sprites.update()
