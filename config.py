@@ -27,19 +27,12 @@ DARK_GRAY = (50, 50, 50)
 # ----------DIALOGUES ET PNJ----------
 DIALOGUES = {
     "pnj_1": [
-        "Hello World :3",
-        "T'es nouveau ?",
+        "Bonjour petit robot",
+        "Tu cherches à passer ?",
         "...",
         "Bon...",
         "Hum... Ton silence est ravissant haha '^^",
-        "J'en ai vu plein comme toi, tu sais ?",
-        "Je leur répète toujours la même chose:",
-        "Tu es un monstre et tu es coincé ici",
-        "Tu dois t'échapper grâce à la barrière magique",
-        "Tu peux intéragir avec les humains",
-        "Eh... Attend ! Tu m'écoute vraiment ?",
-        "Tout le monde me prend pour un troll...",
-        "C'est gentil de faire semblant, l'ami",
+        "Il y a un bouton je crois en haut à gauche du parc",
         "Byeeee ^^"
     ],
     "pnj_2": [
@@ -70,7 +63,7 @@ DIALOGUES = {
 }
 
 PNJ_NAMES = {
-    "pnj_1": "Geek Nostalgique :3",
+    "pnj_1": "Jacob Le Vieux",
     "pnj_2": "██████",
     "pnj_3": "Hevletica",
     "pnj_4": "Hevletica",
@@ -104,60 +97,70 @@ MAPS_CONFIG = {
     "map1_1": {
         "name": "hub",
         "image": "assets/maps/spawn.png",
+        "background": "assets/maps_bg/spawn.png",
         "previous_map": None,            # pas de map précédente pour la première map
         "next_map": ["map1_2", "map1_5", "map1_6"]   # plusieurs chemins possibles
     },
     "map1_2": {
         "name": "lev_couloir",
         "image": "assets/maps/lev_couloir.png",
+        "background": "assets/maps_bg/spawn.png",
         "previous_map": "map1_1",
         "next_map": ["map1_3"]  # fin de parcours ou autre suite
     },
     "map1_3": {
         "name": "lev_main",
         "image": "assets/maps/lev_main.png",
+        "background": "assets/maps_bg/spawn.png",
         "previous_map": "map1_2",
         "next_map": ["map1_4"]           # par exemple, un unique chemin vers la suite
     },
     "map1_4": {
         "name": "lev_o1",
         "image": "assets/maps/lev_o1.png",
+        "background": "assets/maps_bg/spawn.png",
         "previous_map": "map1_3",
         "next_map": None
     },
     "map1_5": {
         "name": "barrer",
         "image": "assets/maps/barrer.png",
+        "background": "assets/maps_bg/spawn.png",
         "previous_map": "map1_1",
         "next_map": ["map1_1"]
     },
     "map1_6": {
         "name": "o1",
         "image": "assets/maps/o1.png",
+        "background": "assets/maps_bg/spawn.png",
         "previous_map": "map1_1",
         "next_map": ["map1_7"]
     },
     "map1_7": {
         "name": "o2",
         "image": "assets/maps/o2.png",
+        "background": "assets/maps_bg/spawn.png",
         "previous_map": "map1_6",
         "next_map": ["map1_8"]
     },
     "map1_8": {
         "name": "o3",
         "image": "assets/maps/o3.png",
+        "background": "assets/maps_bg/spawn.png",
         "previous_map": "map1_7",
         "next_map": ["map1_9", "map1_10"]
     },
     "map1_9": {
         "name": "o3-1",
         "image": "assets/maps/o3-1.png",
+        "background": "assets/maps_bg/spawn.png",
         "previous_map": "map1_8",
         "next_map": None
     },
     "map1_10": {
         "name": "o3-2",
         "image": "assets/maps/o3-2.png",
+        "background": "assets/maps_bg/spawn.png",
         "previous_map": "map1_8",
         "next_map": None
     },

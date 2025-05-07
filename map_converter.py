@@ -8,9 +8,6 @@ def convert_map_image(image_path):
     for y in range(height):
         for x in range(width):
             color = img.get_at((x, y))
-            px, py = 5, 2
-            if (x, y) == (px, py):
-                print("levier : ", color.r, color.g, color.b)
             if (color.r, color.g, color.b) == (0, 0, 255):
                 map_data[y][x] = "BB"
             elif color.r == 0 and color.g == 255:

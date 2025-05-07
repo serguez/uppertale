@@ -1,6 +1,7 @@
 # uppertale.py
 
 import pygame
+import os
 import math
 import sys
 from sprites import *
@@ -52,6 +53,8 @@ class Game:
 
         self.lever_states = {}
         self.levers = pygame.sprite.Group()
+
+        self.background = None
         
     def createTileMap(self, map_data):
         player_coordonne = [0, 0]
@@ -108,6 +111,30 @@ class Game:
         if not self.current_map_config:
             print("Map inconnue:", map_key)
             return
+        
+        bg_path = self.current_map_config.get("background")
+        print(f"[DEBUG] load_new_map('{map_key}') bg_path =", bg_path)
+        if bg_path:
+            bg = pygame.image.load(bg_path).convert()
+            # 1) on récupère l'ancienne taille
+            w, h = bg.get_size()
+            # 2) on scale ×4
+            bg = pygame.transform.scale(bg, (w * 10, h * 10)) 
+            # on stocke et on positionne le Rect à (-1000, -1000)
+            self.background = bg
+            self.bg_rect = bg.get_rect(topleft=(-1000, -1000))
+        else:
+            # si pas de background défini, on remplit en noir
+            self.background = None
+            self.bg_rect = pygame.Rect(0,0,0,0)
+        
+        bg_sprite = pygame.sprite.Sprite()
+        bg_sprite._layer  = 0                        # couche la plus basse
+        bg_sprite.groups  = self.all_sprites         # l’ajoute à all_sprites
+        pygame.sprite.Sprite.__init__(bg_sprite, self.all_sprites)
+        bg_sprite.image = bg                          # surface du fond
+        bg_sprite.rect  = bg.get_rect(topleft=(-1000,-1000))
+
         self.current_map = convert_map_image(self.current_map_config["image"])
         self.createTileMap(self.current_map)
 
@@ -119,9 +146,7 @@ class Game:
         self.blocks = pygame.sprite.LayeredUpdates()
         self.exit_blocks = pygame.sprite.LayeredUpdates()
 
-        self.current_map_config = self.maps_config["map1_1"]
-        self.current_map = convert_map_image(self.current_map_config["image"])
-        self.createTileMap(self.current_map)
+        self.load_new_map("map1_1")
     
     def events(self):
         for event in pygame.event.get():
@@ -187,9 +212,9 @@ class Game:
         self.all_sprites.update()
     
     def draw(self):
-        self.screen.fill(BLACK)
+        self.screen.blit(self.background, self.bg_rect)
+
         self.all_sprites.draw(self.screen)
-        # Affiche la boîte de dialogue si elle est ouverte
         self.dialogue_manager.draw(self.screen)
 
         self.clock.tick(FPS)
