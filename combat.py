@@ -1,5 +1,6 @@
 import pygame, sys, random, math
 from config import *
+from event_manager import Event
 
 pygame.font.init()
 font = pygame.font.SysFont("Arial", 24)
@@ -556,6 +557,17 @@ class CombatManager:
             # tout ce qu'il y a après "load"
             map_key = consequence_str[len("load"):]
             self.game.load_new_map(map_key)
+        
+        elif consequence_str.startswith("opendoor_"):
+            # décode l'id après "opendoor_"
+            door_id_str = consequence_str.split("_", 1)[1]
+            try:
+                door_id = int(door_id_str)
+                # poste un événement global
+                from event_manager import Event
+                self.game.event_mgr.post(Event("OPEN_DOOR", {"door_id": door_id}))
+            except ValueError:
+                print(f"[Consequence] id de porte invalide : {door_id_str!r}")
 
         else:
             # debug, cas non prévu

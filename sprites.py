@@ -235,12 +235,23 @@ class Door(pygame.sprite.Sprite):
 
         # S’abonner à l’événement levier
         game.event_mgr.subscribe("LEVER_PULLED", self.on_lever_pulled)
+
+        # S’abonner à l’événement levier
+        game.event_mgr.subscribe("LEVER_PULLED", self.on_lever_pulled)
+        # S’abonner aussi à l’événement d’ouverture par combat
+        game.event_mgr.subscribe("OPEN_DOOR", self.on_open_door)
+
         # Si déjà tiré, on ouvre tout de suite
         if game.lever_states.get(self.id):
             self.open()
 
     def on_lever_pulled(self, event):
         if event.payload.get("lever_id") == self.id:
+            self.open()
+
+    def on_open_door(self, event):
+        # si l'id de l’événement correspond à celui de la porte…
+        if event.payload.get("door_id") == self.id:
             self.open()
 
     def open(self):

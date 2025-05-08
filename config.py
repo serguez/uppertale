@@ -72,7 +72,7 @@ PNJ_NAMES = {
 
 # ----------EXEMPLE DE MOB----------
 ENEMY_DATA = {
-    1: {
+    0: {
         "name": "Ptit Gus",
         "hp": 25,
         "atq": 3,
@@ -85,7 +85,8 @@ ENEMY_DATA = {
             "prj": 5,
             "trj": "round6",
             "reb": True,
-            "conséquence": "loadmap1_o1"
+            "conséquence": "opendoor_0"
+                          #"loadmap1_o1"
         }
     },
 }
