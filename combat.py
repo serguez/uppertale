@@ -371,7 +371,7 @@ class CombatManager:
                             self.message = f"{self.monster.name} : {self.monster.hp}PV & {self.monster.atq}ATQ. {self.monster.description}"
                         else:
                             if i == self.monster.correct_option_index:
-                                self.message = f"{self.monster.name} se sent réconforté."
+                                self.message = f"{self.monster.name} se sent mieux."
                                 self.monster.correct_interaction_done = True
                             else:
                                 self.message = "Ça ne lui a rien fait."

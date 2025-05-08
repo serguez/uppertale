@@ -11,7 +11,7 @@ ENTITIES_LAYER = 3
 TRANSITION_BLOCK_LAYER = 2
 BLOCK_LAYER = 1
 
-PLAYER_SPEED = 6  # équivalent à 3*2
+PLAYER_SPEED = 6
 
 # Couleurs
 RED = (255, 0, 0)
@@ -32,42 +32,38 @@ DIALOGUES = {
         "...",
         "Bon...",
         "Hum... Ton silence est ravissant haha '^^",
-        "Il y a un bouton je crois en haut à gauche du parc",
+        "Il y a un bouton je crois en haut à gauche du parc, il ouvre le portail pour aller dans l'école. ",
         "Byeeee ^^"
     ],
     "pnj_2": [
-        "Bonjo█r",
-        "Etrange n'█st-ce pa█ ?",
-        "J█ ne sa█s pa███e qui m'arr██e..."
+        "Euh...",
+        "Salut ?"
     ],
     "pnj_3":[
-        "... ",
-        "tu sais euh...",
-        "Je ne sais pas ce que tu as fait au petit gus d'avant...",
-        "Il n'est pas vraiment méchant... Il veut juste jouer",
-        "Fais correctement tes choix la prochaine fois..",
-        "Enfin, réfléchis-y..."
+        "Quel drôle de création..."
     ],
     "pnj_4":[
-        "Je peux savoir ce que tu cherches ?",
-        "Je te vois là...",
-        "Je sais que tu me suis.",
-        "Ah... Non ? Bon peut-être alors",
-        "C'est vrai que ce village est petit"
+        "Bas les pattes !",
         ],
     "pnj_5":[
+        "Oh un robot...",
+        ],
+    "pnj_6":[
         "...",
-        "Encore ?",
-        "Qu'est-ce qui cloche avec toi ?"
+        "[REMOVED BY THE SYSTEM]... C'est toi ?",
+        "Tu es obligé de te cacher avec un robot... ?",
+        "Meme si je viens devant chez toi ?",
+        "Laisse moi tranquille..."
         ]
 }
 
 PNJ_NAMES = {
     "pnj_1": "Jacob Le Vieux",
-    "pnj_2": "██████",
-    "pnj_3": "Hevletica",
-    "pnj_4": "Hevletica",
-    "pnj_5": "Helvetica"
+    "pnj_2": "Passant",
+    "pnj_3": "Passant",
+    "pnj_4": "Passant",
+    "pnj_5": "Passant",
+    "pnj_6": "Essone"
 }
 
 # ----------EXEMPLE DE MOB----------
@@ -85,8 +81,23 @@ ENEMY_DATA = {
             "prj": 5,
             "trj": "round6",
             "reb": True,
-            "conséquence": "opendoor_0"
-                          #"loadmap1_o1"
+            "conséquence": None
+        }
+    },
+    1: {
+        "name": "Autre Ptit Gus",
+        "hp": 30,
+        "atq": 6,
+        "interaction_options": ["S'informer", "Tirer la langue", "Lui faire une blague"],
+        "correct_option_index": 2,
+        "description": "C'est juste un enfant...",
+        "attacks": {
+            "agr": "high",
+            "vit": 3,
+            "prj": 3,
+            "trj": "linear",
+            "reb": True,
+            "conséquence": None
         }
     },
 }
