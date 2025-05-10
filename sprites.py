@@ -241,6 +241,13 @@ class Door(pygame.sprite.Sprite):
         # S’abonner aussi à l’événement d’ouverture par combat
         game.event_mgr.subscribe("OPEN_DOOR", self.on_open_door)
 
+        if game.door_states.get(self.id):
+            self.kill()
+            return
+
+        print(f"[DEBUG] Door {self.id} subscribed to OPEN_DOOR")
+
+
         # Si déjà tiré, on ouvre tout de suite
         if game.lever_states.get(self.id):
             self.open()
@@ -250,14 +257,16 @@ class Door(pygame.sprite.Sprite):
             self.open()
 
     def on_open_door(self, event):
-        # si l'id de l’événement correspond à celui de la porte…
         if event.payload.get("door_id") == self.id:
             self.open()
+            print(f"[DEBUG] Door {self.id} received OPEN_DOOR")
 
     def open(self):
-        # Change la couleur en brun clair et désactive la collision
-        self.image.fill(self.COLOR_OPENED)
-        self.game.blocks.remove(self)
+        print(f"[DEBUG] Door {self.id} opened")
+        # 1) Persister l’ouverture
+        self.game.door_states[self.id] = True
+        # 2) Supprimer le sprite de tous les groupes (collision + rendu)
+        self.kill()
 
 class Button:
     def __init__(self, x, y, width, height, fg, bg, content, fontsize):

@@ -52,7 +52,7 @@ class Monster:
         self.description = data.get("description", "Inconnu")
         self.attacks = data.get("attacks", {})
         self.consequence = self.attacks.get("conséquence")
-        print(f"[DEBUG] Monster.consequence = {self.consequence!r}")
+        print(f"[DEBUG] Monster.consequence = {self.consequence}")
 
 # --- Classe Projectile ---
 class Projectile:
@@ -551,7 +551,6 @@ class CombatManager:
     def _process_consequence(self, consequence_str: str):
         """
         Si la chaîne commence par 'load', on fait game.load_new_map(...)
-        Si elle commence par 'play', on fait game.play_cinematique(...)
         """
         if consequence_str.startswith("load"):
             # tout ce qu'il y a après "load"
@@ -564,6 +563,10 @@ class CombatManager:
             try:
                 door_id = int(door_id_str)
                 # poste un événement global
+                # 1) Persister l’ouverture pour les futures salles
+                self.game.door_states[door_id] = True
+                # 2) Poster l’événement pour la porte actuelle (si elle existe)
+                print(f"[DEBUG] Marking door {door_id} open persistently and posting event")
                 from event_manager import Event
                 self.game.event_mgr.post(Event("OPEN_DOOR", {"door_id": door_id}))
             except ValueError:
@@ -571,7 +574,7 @@ class CombatManager:
 
         else:
             # debug, cas non prévu
-            print(f"[Consequence] action inconnue : {consequence_str!r}")
+            print(f"[Consequence] action inconnue: {consequence_str!r}")
 
 
 def start_combat(ennemy, game):
@@ -586,6 +589,8 @@ def start_combat(ennemy, game):
     outcome = combat_manager.run()
 
     if outcome == "victoire":
+        ENEMY_DATA[int(ennemy.ennemy_id)]["has_been_killed"] = True
+        ennemy.killed = True
         ennemy.kill()
     elif outcome == "défaite":
         print("PERDU")

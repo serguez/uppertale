@@ -57,15 +57,20 @@ class DialogueManager:
         dialogue_box = pygame.Rect(50, WIN_HEIGHT - 150, WIN_WIDTH - 100, 100)
         pygame.draw.rect(screen, (50, 50, 50), dialogue_box)
 
-        npc_name = self.names.get(self.current_pnj_id, "NPC")
-        name_surface = self.pnj_name_font.render(npc_name, True, WHITE)
-        screen.blit(name_surface, (dialogue_box.x + 10, dialogue_box.y + 10))
+        # nouveau comportement : n’affiche le nom que si c’est un vrai PNJ
+        if self.current_pnj_id in self.names:
+            npc_name   = self.names[self.current_pnj_id]
+            name_surf  = self.pnj_name_font.render(npc_name, True, WHITE)
+            screen.blit(name_surf, (dialogue_box.x + 10, dialogue_box.y + 10))
+            y_offset = dialogue_box.y + 10 + name_surf.get_height() + 5
+        else:
+            # pas de nom à afficher
+            y_offset = dialogue_box.y + 10
 
-        current_line = self.current_dialogue_lines[self.current_line_index]
+        # on affiche ensuite le texte, aligné selon s’il y a un nom ou non
+        current_line  = self.current_dialogue_lines[self.current_line_index]
         wrapped_lines = self.wrap_text(current_line, self.dialogue_font, dialogue_box.width - 20)
-        line_height = self.dialogue_font.get_linesize()
-        y_offset = dialogue_box.y + 10 + name_surface.get_height() + 5
-
+        line_height   = self.dialogue_font.get_linesize()
         for line in wrapped_lines:
             text_surface = self.dialogue_font.render(line, True, WHITE)
             screen.blit(text_surface, (dialogue_box.x + 10, y_offset))

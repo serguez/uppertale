@@ -54,6 +54,8 @@ class Game:
         self.lever_states = {}
         self.levers = pygame.sprite.Group()
 
+        self.door_states = {}
+
         self.background = None
         
     def createTileMap(self, map_data):
@@ -113,7 +115,6 @@ class Game:
             return
         
         bg_path = self.current_map_config.get("background")
-        print(f"[DEBUG] load_new_map('{map_key}') bg_path =", bg_path)
         if bg_path:
             bg = pygame.image.load(bg_path).convert()
             # 1) on récupère l'ancienne taille
@@ -187,7 +188,7 @@ class Game:
         nearest_entity = None
         min_dist = float('inf')
         INTERACTION_RANGE = 50
-                # Parcourt toutes les entités pouvant interagir (PNJ et Ennemis)
+        # Parcourt toutes les entités pouvant interagir (PNJ et Ennemis)
         for spr in self.all_sprites:
             if isinstance(spr, Pnj) or isinstance(spr, Ennemy):
                 dist = math.hypot(spr.rect.centerx - player_sprite.rect.centerx,
@@ -201,12 +202,16 @@ class Game:
                 self.dialogue_manager.start_dialogue(nearest_entity.pnj_id)
                 print("PNJ")
             elif isinstance(nearest_entity, Ennemy):
-                # Récupère l'id de l'ennemi
-                enemy_id = int(nearest_entity.ennemy_id)
-                print(enemy_id)
-                # Récupère les données de l'ennemi depuis config.py
-                from combat import start_combat
-                outcome = start_combat(nearest_entity, self)
+                # si pas encore tué, on lance le combat
+                if not ENEMY_DATA[int(nearest_entity.ennemy_id)]["has_been_killed"]:
+                    from combat import start_combat
+                    outcome = start_combat(nearest_entity, self)
+                else:
+                    # sinon, on affiche un petit dialogue “vide”
+                    self.dialogue_manager.current_dialogue_lines = ["… mais personne n'est venu."]
+                    self.dialogue_manager.current_line_index = 0
+                    self.dialogue_manager.dialogue_open = True
+                    self.dialogue_manager.current_pnj_id = None
 
     def update(self):
         self.all_sprites.update()
