@@ -48,6 +48,8 @@ class Monster:
         self.atq = data.get("atq", 5)
         self.interaction_options = data.get("interaction_options", [])
         self.correct_option_index = data.get("correct_option_index", 0)
+        self.correct_option_text = data.get("correct_option_text")
+        self.incorrect_option_text = data.get("incorrect_option_text")
         self.correct_interaction_done = False
         self.description = data.get("description", "Inconnu")
         self.attacks = data.get("attacks", {})
@@ -162,6 +164,7 @@ class CombatManager:
         self.combat_finished = False
         self.wait_start_time = None  # Pour le délai en état "wait"
         self.init_menu()
+        self.skip_victory_screen = False
     
     # Pour définir un message et passer en état "wait"
     def set_message_and_wait(self, message):
@@ -220,26 +223,32 @@ class CombatManager:
         self.message = ""
     
     def draw_player_hp_bar(self):
-        bar_width = 300
-        bar_height = 20
-        x = WIN_WIDTH // 2 - bar_width // 2
-        y = WIN_HEIGHT - 95
-        pygame.draw.rect(self.screen, RED, (x, y, bar_width, bar_height))
-        life_fraction = self.player_hp / 20
-        remaining_width = int(bar_width * life_fraction)
-        pygame.draw.rect(self.screen, YELLOW, (x, y, remaining_width, bar_height))
-        pygame.draw.rect(self.screen, WHITE, (x, y, bar_width, bar_height), 2)
-    
+        if self.skip_victory_screen:
+            pass
+        else:
+            bar_width = 300
+            bar_height = 20
+            x = WIN_WIDTH // 2 - bar_width // 2
+            y = WIN_HEIGHT - 95
+            pygame.draw.rect(self.screen, RED, (x, y, bar_width, bar_height))
+            life_fraction = self.player_hp / 20
+            remaining_width = int(bar_width * life_fraction)
+            pygame.draw.rect(self.screen, YELLOW, (x, y, remaining_width, bar_height))
+            pygame.draw.rect(self.screen, WHITE, (x, y, bar_width, bar_height), 2)
+
     def draw_monster_hp_bar(self):
-        bar_width = 300
-        bar_height = 20
-        x = 20
-        y = 50
-        pygame.draw.rect(self.screen, DARK_GRAY, (x, y, bar_width, bar_height))
-        life_fraction = self.monster.hp / self.monster.max_hp
-        remaining_width = int(bar_width * life_fraction)
-        pygame.draw.rect(self.screen, RED, (x, y, remaining_width, bar_height))
-        pygame.draw.rect(self.screen, WHITE, (x, y, bar_width, bar_height), 2)
+        if self.skip_victory_screen:
+            pass
+        else:
+            bar_width = 300
+            bar_height = 20
+            x = 20
+            y = 50
+            pygame.draw.rect(self.screen, DARK_GRAY, (x, y, bar_width, bar_height))
+            life_fraction = self.monster.hp / self.monster.max_hp
+            remaining_width = int(bar_width * life_fraction)
+            pygame.draw.rect(self.screen, RED, (x, y, remaining_width, bar_height))
+            pygame.draw.rect(self.screen, WHITE, (x, y, bar_width, bar_height), 2)
     
     def update(self, events):
         if self.state == "menu":
@@ -273,35 +282,40 @@ class CombatManager:
             if self.monster.consequence:
                 self._process_consequence(self.monster.consequence)
         if self.player_hp <= 0 and self.state != "end":
-            self.outcome = "défaite"
-            self.state = "end"
+            self.skip_victory_screen = True
+            self.game.cinematic(3)
+            pygame.quit()
+            sys.exit()
     
     def draw(self):
-        self.screen.fill(BLACK)
-        monster_text = font.render(self.monster.name, True, WHITE)
-        self.screen.blit(monster_text, (20, 20))
-        self.draw_monster_hp_bar()
-        self.draw_player_hp_bar()
-        
-        if self.state == "menu":
-            for btn in self.menu_buttons:
-                btn.draw(self.screen)
-        elif self.state == "combat":
-            self.draw_combat()
-        elif self.state == "interaction":
-            for btn in self.interaction_buttons:
-                btn.draw(self.screen)
-        elif self.state == "pity":
-            for btn in self.pity_buttons:
-                btn.draw(self.screen)
-        elif self.state == "enemy_turn":
-            self.draw_enemy_turn()
-        elif self.state == "end":
-            self.draw_end()
-        
-        if self.message:
-            msg_surface = small_font.render(self.message, True, YELLOW)
-            self.screen.blit(msg_surface, (WIN_WIDTH // 2 - msg_surface.get_width() // 2, WIN_HEIGHT - 40))
+        if self.skip_victory_screen:
+            pass
+        else:
+            self.screen.fill(BLACK)
+            monster_text = font.render(self.monster.name, True, WHITE)
+            self.screen.blit(monster_text, (20, 20))
+            self.draw_monster_hp_bar()
+            self.draw_player_hp_bar()
+
+            if self.state == "menu":
+                for btn in self.menu_buttons:
+                    btn.draw(self.screen)
+            elif self.state == "combat":
+                self.draw_combat()
+            elif self.state == "interaction":
+                for btn in self.interaction_buttons:
+                    btn.draw(self.screen)
+            elif self.state == "pity":
+                for btn in self.pity_buttons:
+                    btn.draw(self.screen)
+            elif self.state == "enemy_turn":
+                self.draw_enemy_turn()
+            elif self.state == "end":
+                self.draw_end()
+
+            if self.message:
+                msg_surface = small_font.render(self.message, True, YELLOW)
+                self.screen.blit(msg_surface, (WIN_WIDTH // 2 - msg_surface.get_width() // 2, WIN_HEIGHT - 40))
     
     def update_menu(self, events):
         for event in events:
@@ -371,10 +385,10 @@ class CombatManager:
                             self.message = f"{self.monster.name} : {self.monster.hp}PV & {self.monster.atq}ATQ. {self.monster.description}"
                         else:
                             if i == self.monster.correct_option_index:
-                                self.message = f"{self.monster.name} se sent mieux."
+                                self.message = self.monster.correct_option_text
                                 self.monster.correct_interaction_done = True
                             else:
-                                self.message = "Ça ne lui a rien fait."
+                                self.message = self.monster.incorrect_option_text
                         self.wait_start_time = pygame.time.get_ticks()
                         self.state = "wait"
     
@@ -395,22 +409,20 @@ class CombatManager:
                                 self.wait_start_time = pygame.time.get_ticks()
                                 self.outcome = "fuite"
                                 self.state = "wait"
-                                if self.monster.consequence:
-                                    self._process_consequence(self.monster.consequence)
                             else:
                                 self.message = "Fuite ratée."
                                 self.wait_start_time = pygame.time.get_ticks()
                                 self.state = "wait"
                         elif btn.text == "Épargner":
                             if self.monster.correct_interaction_done:
-                                self.message = "Vous avez épargné le monstre."
+                                self.message = "Vous l'avez épargné."
                                 self.wait_start_time = pygame.time.get_ticks()
                                 self.outcome = "épargné"
                                 self.state = "wait"
                                 if self.monster.consequence:
                                     self._process_consequence(self.monster.consequence)
                             else:
-                                self.message = "Vous ne pouvez pas épargner le monstre !"
+                                self.message = "Vous ne pouvez pas l'épargner !"
                                 self.wait_start_time = pygame.time.get_ticks()
                                 self.state = "wait"
     
@@ -506,19 +518,22 @@ class CombatManager:
                 break
     
     def draw_end(self):
-        if self.outcome == "victoire":
-            end_text = font.render("Victoire !", True, WHITE)
-        elif self.outcome == "défaite":
-            end_text = font.render("Défaite...", True, WHITE)
-        elif self.outcome == "fuite":
-            end_text = font.render("Vous avez fui !", True, WHITE)
-        elif self.outcome == "épargné":
-            end_text = font.render("Monstre épargné !", True, WHITE)
+        if self.skip_victory_screen:
+            pass
         else:
-            end_text = font.render("Fin du combat", True, WHITE)
-        self.screen.blit(end_text, (WIN_WIDTH // 2 - end_text.get_width() // 2, WIN_HEIGHT // 2 - end_text.get_height() // 2))
-        instr = small_font.render("Appuyez sur une touche pour quitter", True, WHITE)
-        self.screen.blit(instr, (WIN_WIDTH // 2 - instr.get_width() // 2, WIN_HEIGHT // 2 + end_text.get_height()))
+            if self.outcome == "victoire":
+                end_text = font.render("Victoire !", True, WHITE)
+            elif self.outcome == "défaite":
+                end_text = font.render("Défaite...", True, WHITE)
+            elif self.outcome == "fuite":
+                end_text = font.render("Vous avez fui !", True, WHITE)
+            elif self.outcome == "épargné":
+                end_text = font.render("Epargné !", True, WHITE)
+            else:
+                end_text = font.render("Fin du combat", True, WHITE)
+            self.screen.blit(end_text, (WIN_WIDTH // 2 - end_text.get_width() // 2, WIN_HEIGHT // 2 - end_text.get_height() // 2))
+            instr = small_font.render("Appuyez sur une touche pour quitter", True, WHITE)
+            self.screen.blit(instr, (WIN_WIDTH // 2 - instr.get_width() // 2, WIN_HEIGHT // 2 + end_text.get_height()))
     
     def run(self):
         clock = pygame.time.Clock()
@@ -549,13 +564,14 @@ class CombatManager:
         return self.outcome
     
     def _process_consequence(self, consequence_str: str):
-        """
-        Si la chaîne commence par 'load', on fait game.load_new_map(...)
-        """
         if consequence_str.startswith("load"):
             # tout ce qu'il y a après "load"
             map_key = consequence_str[len("load"):]
+            if map_key == "map1_12":
+                self.game.current_act = "act2"
+                print("[DEBUG] Passage à l'acte 2")
             self.game.load_new_map(map_key)
+            
         
         elif consequence_str.startswith("opendoor_"):
             # décode l'id après "opendoor_"
@@ -572,6 +588,10 @@ class CombatManager:
             except ValueError:
                 print(f"[Consequence] id de porte invalide : {door_id_str!r}")
 
+        elif consequence_str.startswith("cinematic_"):
+            self.skip_victory_screen = True
+            cinematic_id = consequence_str.split("_", 1)[1]
+            self.game.cinematic(int(cinematic_id))
         else:
             # debug, cas non prévu
             print(f"[Consequence] action inconnue: {consequence_str!r}")

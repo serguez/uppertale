@@ -1,6 +1,7 @@
 # uppertale.py
 
 import pygame
+import sys
 import os
 import math
 import sys
@@ -43,7 +44,37 @@ class Game:
         self.pnj_name_font = pygame.font.Font("assets/fonts/HomeVideo-BLG6G.ttf", 24)
         
         self.intro_background = pygame.image.load("assets/sprites/introbackground.png")
-        self.tutoriel_background = pygame.image.load("assets/sprites/tutoriel.png")
+        self.tutoriel_background = pygame.image.load("assets/sprites/tutoriel.png") 
+        self.cinematic_act2 = pygame.image.load("assets/sprites/cinematic_act2.png")
+        self.cinematic_outro = pygame.image.load("assets/sprites/introbackground.png")
+        self.cinematic_gameover = pygame.image.load("assets/sprites/gameoverscreen.png")
+        self.cinematic_act1 = pygame.image.load("assets/sprites/cinematic_act1.png")
+
+        levier1 = pygame.image.load("assets/sprites/levier1.png").convert_alpha()
+        levier2 = pygame.image.load("assets/sprites/levier2.png").convert_alpha()
+        self.levier1 = pygame.transform.scale(levier1, (TILESIZE, TILESIZE))
+        self.levier2 = pygame.transform.scale(levier2, (TILESIZE, TILESIZE))
+
+        door = pygame.image.load("assets/sprites/lock.png").convert_alpha()
+        self.door = pygame.transform.scale(door, (TILESIZE, TILESIZE))
+
+        entity = pygame.image.load("assets/sprites/entity.png").convert_alpha()
+        self.entity = pygame.transform.scale(entity, (TILESIZE, TILESIZE))
+
+        player = pygame.image.load("assets/sprites/player.png").convert_alpha()
+        player_act3 = pygame.image.load("assets/sprites/player_act3.png").convert_alpha()
+        self.player = pygame.transform.scale(player, (TILESIZE, TILESIZE))
+        self.player_act3 = pygame.transform.scale(player_act3, (TILESIZE, TILESIZE))
+
+        wall_act1 = pygame.image.load("assets/sprites/bush.png").convert_alpha()
+        wall_act2 = pygame.image.load("assets/sprites/wall.png").convert_alpha()
+        wall_act3 = pygame.image.load("assets/sprites/wallact3.png").convert_alpha()
+        self.wall_texture_act1 = pygame.transform.scale(wall_act1, (TILESIZE, TILESIZE))
+        self.wall_texture_act2 = pygame.transform.scale(wall_act2, (TILESIZE, TILESIZE))
+        self.wall_texture_act3 = pygame.transform.scale(wall_act3, (TILESIZE, TILESIZE))
+
+        exit = pygame.image.load("assets/sprites/exit.png").convert_alpha()
+        self.exit = pygame.transform.scale(exit, (TILESIZE, TILESIZE))
 
         # Création du gestionnaire de dialogue avec les données de config
         from config import DIALOGUES, PNJ_NAMES
@@ -53,10 +84,11 @@ class Game:
 
         self.lever_states = {}
         self.levers = pygame.sprite.Group()
-
         self.door_states = {}
 
         self.background = None
+
+        self.current_act = "act1"
         
     def createTileMap(self, map_data):
         player_coordonne = [0, 0]
@@ -113,14 +145,15 @@ class Game:
         if not self.current_map_config:
             print("Map inconnue:", map_key)
             return
-        
+        print("[DEBUG] Map", map_key)
+
         bg_path = self.current_map_config.get("background")
         if bg_path:
             bg = pygame.image.load(bg_path).convert()
             # 1) on récupère l'ancienne taille
             w, h = bg.get_size()
             # 2) on scale ×4
-            bg = pygame.transform.scale(bg, (w * 10, h * 10)) 
+            bg = pygame.transform.scale(bg, (w * 5 ,h * 5)) 
             # on stocke et on positionne le Rect à (-1000, -1000)
             self.background = bg
             self.bg_rect = bg.get_rect(topleft=(-1000, -1000))
@@ -146,6 +179,7 @@ class Game:
         self.all_sprites = pygame.sprite.LayeredUpdates()
         self.blocks = pygame.sprite.LayeredUpdates()
         self.exit_blocks = pygame.sprite.LayeredUpdates()
+        self.levers = pygame.sprite.Group()
 
         self.load_new_map("map1_1")
     
@@ -232,9 +266,6 @@ class Game:
             self.draw()
         self.running = False
     
-    def game_over(self):
-        pass
-    
     def intro_screen(self):
         intro = True
         title = self.font.render("UPPERTALE", True, BLACK)
@@ -272,16 +303,52 @@ class Game:
             self.screen.blit(self.tutoriel_background, (0, 0))
             self.clock.tick(FPS)
             pygame.display.update()
-            
+    
+    def cinematic(self, id):
+        cinem = True
         
+        while cinem:
+            self.screen.fill(BLACK)
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    cinem = False
+                    self.running = False
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_SPACE:
+                        if id ==2:
+                            pygame.quit()
+                            sys.exit()
+                        if id==3:
+                            pygame.quit()
+                            sys.exit()
+                        else:
+                            cinem = False  
+            if id == 1:
+                self.screen.blit(self.cinematic_act2, (0, 0))
+                self.current_act = "act3"
+                print("[DEBUG] Passage à l'acte 3")
+                self.load_new_map("map1_18")
+            if id == 2:
+                self.screen.blit(self.cinematic_outro, (0, 0))
+            elif id == 3:
+                self.screen.blit(self.cinematic_gameover, (0, 0))
+            elif id ==4:
+                self.screen.blit(self.cinematic_act1, (0, 0))
+            else:
+                print("[DEBUG] Id de cinématic reçu inconnu : ", id)
+
+            self.clock.tick(FPS)
+            pygame.display.update()
+
+    
 
 g = Game()
 g.intro_screen()
 g.tutoriel()
+g.cinematic(4)
 g.new()
 while g.running:
     g.main()
-    g.game_over()
 
 pygame.quit()
 sys.exit()

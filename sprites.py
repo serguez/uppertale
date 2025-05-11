@@ -20,11 +20,12 @@ class Player(pygame.sprite.Sprite):
         self.y_change = 0
 
         self.facing = "down"
+        if self.game.current_act == "act1" or self.game.current_act == "act2":
+            self.image = self.game.player.copy()
+        if self.game.current_act == "act3":
+            self.image = self.game.player_act3.copy()
+        self.rect = self.image.get_rect(topleft=(x * TILESIZE, y * TILESIZE))
 
-        self.image = pygame.Surface([self.width, self.height])
-        self.image.fill(RED)
-
-        self.rect = self.image.get_rect(center=(self.x, self.y))
         self.rect.x = self.x
         self.rect.y = self.y
 
@@ -121,8 +122,8 @@ class Pnj(pygame.sprite.Sprite):
         self.pnj_id = pnj_id
         self.type = "pnj"
 
-        self.image = pygame.Surface([self.width, self.height])
-        self.image.fill(YELLOW)
+        self.image = self.game.entity.copy()
+        self.rect = self.image.get_rect(topleft=(x * TILESIZE, y * TILESIZE))
 
         self.rect = self.image.get_rect()
         self.rect.x = self.x
@@ -143,8 +144,8 @@ class Ennemy(pygame.sprite.Sprite):
         self.ennemy_id = ennemy_id
         self.type = "ennemy"
 
-        self.image = pygame.Surface([self.width, self.height])
-        self.image.fill(PURPLE)
+        self.image = self.game.entity.copy()
+        self.rect = self.image.get_rect(topleft=(x * TILESIZE, y * TILESIZE))
 
         self.rect = self.image.get_rect()
         self.rect.x = self.x
@@ -161,9 +162,14 @@ class Block(pygame.sprite.Sprite):
         self.y = y * TILESIZE
         self.width = TILESIZE
         self.height = TILESIZE
-
-        self.image = pygame.Surface([self.width, self.height])
-        self.image.fill(BLUE)
+        
+        if self.game.current_act == "act1":
+            self.image = self.game.wall_texture_act1.copy()
+        if self.game.current_act == "act2":
+            self.image = self.game.wall_texture_act2.copy()
+        if self.game.current_act == "act3":
+            self.image = self.game.wall_texture_act3.copy()
+        self.rect = self.image.get_rect(topleft=(x * TILESIZE, y * TILESIZE))
 
         self.rect = self.image.get_rect()
         self.rect.x = self.x
@@ -181,8 +187,8 @@ class Transition_Block(pygame.sprite.Sprite):
         self.width = TILESIZE
         self.height = TILESIZE
 
-        self.image = pygame.Surface([self.width, self.height])
-        self.image.fill(GREEN)
+        self.image = self.game.exit.copy()
+        self.rect = self.image.get_rect(topleft=(x * TILESIZE, y * TILESIZE))
 
         self.rect = self.image.get_rect()
         self.rect.x = self.x
@@ -195,15 +201,17 @@ class Lever(pygame.sprite.Sprite):
     COLOR_PULLED = (200, 130,   0)  # orange foncé
 
     def __init__(self, game, x, y, lever_id):
+        self._layer = TRANSITION_BLOCK_LAYER
         super().__init__(game.all_sprites, game.levers)
         self.game, self.id = game, lever_id
-        # État initial (True si déjà tiré dans lever_states)
+
         self.pulled = game.lever_states.get(self.id, False)
 
-        # Création d'une surface carrée de la taille d'une tuile
-        self.image = pygame.Surface((TILESIZE, TILESIZE))
-        # Couleur selon l'état
-        self.image.fill(self.COLOR_PULLED if self.pulled else self.COLOR_IDLE)
+        if self.pulled == False:
+            self.image = self.game.levier1.copy()
+        
+        if self.pulled == True:
+            self.image = self.game.levier2.copy()
 
         # Positionnement dans le monde
         self.rect = self.image.get_rect(topleft=(x * TILESIZE, y * TILESIZE))
@@ -216,13 +224,11 @@ class Lever(pygame.sprite.Sprite):
             self.game.lever_states[self.id] = True
             # Émettre l'événement global
             self.game.event_mgr.post(Event("LEVER_PULLED", {"lever_id": self.id}))
-            # Passer en couleur orange foncé
-            self.image.fill(self.COLOR_PULLED)
+            self.image = self.game.levier2.copy()
 
 
 class Door(pygame.sprite.Sprite):
-    COLOR_CLOSED = (100,  50, 25)  # brun foncé
-    COLOR_OPENED = (180, 100, 50)  # brun clair
+
 
     def __init__(self, game, x, y, door_id):
         super().__init__(game.all_sprites, game.blocks)
@@ -230,7 +236,7 @@ class Door(pygame.sprite.Sprite):
 
         # Surface carrée de taille TILESIZE
         self.image = pygame.Surface((TILESIZE, TILESIZE))
-        self.image.fill(self.COLOR_CLOSED)
+        self.image = self.game.door.copy()
         self.rect = self.image.get_rect(topleft=(x * TILESIZE, y * TILESIZE))
 
         # S’abonner à l’événement levier
