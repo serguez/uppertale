@@ -196,12 +196,12 @@ ENEMY_DATA = {
     4: {
         "name": "Le Proviseur",
         "hp": 150,
-        "atq": 9,
-        "interaction_options": ["S'informer", "Expliquer ce qu'il se passe", "Ne rien dire"],
+        "atq": 6,
+        "interaction_options": ["S'informer", "Expliquer la situation", "Ne rien dire"],
         "correct_option_index": 1,
         "correct_option_text": "Le Proviseur te regarde avec compassion",
         "incorrect_option_text" : "Le Proviseur te regarde tristement",
-        "description": "C'est le proviseur. Les robots ne sont pas autorisés dans l'établissement",
+        "description": "C'est le proviseur. Les robots ne sont pas autorisés.",
         "attacks": {
             "agr": "high",
             "vit": 4,
